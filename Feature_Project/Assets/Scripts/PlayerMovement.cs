@@ -39,7 +39,7 @@ public class PlayerMovement : MonoBehaviour
 
     //input 
     float x, y;
-    bool jumping, sprinting, crouching;
+    bool jumping, sprinting;
 
     private void Awake()
     {
@@ -62,6 +62,7 @@ public class PlayerMovement : MonoBehaviour
     {
         MyInput();
         Look();
+        CounterMovement(x, y, FindVelRelativeToLook());
     }
 
     private void MyInput()
@@ -112,9 +113,8 @@ public class PlayerMovement : MonoBehaviour
     {
         if (grounded && readyToJump)
         {
-            {
-                readyToJump = false;
-            }
+            
+            readyToJump = false;
 
             //Add jump forces
             rb.AddForce(Vector2.up * jumpForce * 1.5f);
