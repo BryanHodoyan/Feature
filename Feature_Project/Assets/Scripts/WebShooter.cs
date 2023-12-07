@@ -47,6 +47,8 @@ public class WebShooter : MonoBehaviour
             StopWeb();
         }
 
+
+        
         CheckForSwingPoints();
 
 
@@ -64,7 +66,7 @@ public class WebShooter : MonoBehaviour
     private void CheckForSwingPoints()
     {
         RaycastHit sphereCastHit;
-        Physics.SphereCast(mainCamera.position, predictionSphereCastRadius, mainCamera.forward , out sphereCastHit, maxDistance, whatIsWebable);
+        Physics.SphereCast(mainCamera.position, predictionSphereCastRadius, mainCamera.forward, out sphereCastHit, maxDistance, whatIsWebable);
 
         RaycastHit raycastHit;
         Physics.Raycast(mainCamera.position, mainCamera.forward, out raycastHit, maxDistance, whatIsWebable);
@@ -139,12 +141,7 @@ public class WebShooter : MonoBehaviour
         currentSwingForce = Mathf.Min(currentSwingForce + Time.deltaTime * webShortenSpeed, maxSwingForce);
 
         // Calculate swing force based on the direction towards the web point
-        Vector3 toWebPoint = webPoint - player.position;
-        Vector3 webDirection = toWebPoint.normalized;
-
-        // Ensure that the swing force is always perpendicular to the web direction
-        Vector3 swingDirection = Vector3.Cross(webDirection, Vector3.down).normalized;
-        Vector3 swingForce = Vector3.Cross(swingDirection, webDirection) * currentSwingForce;
+        Vector3 swingForce = (webPoint - player.position).normalized * currentSwingForce;
 
         // Limit the swing speed
         Vector3 currentVelocity = playerRb.velocity;
