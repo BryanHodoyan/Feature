@@ -24,6 +24,12 @@ public class WebShooter : MonoBehaviour
     public float ForwardForce;
     public float webShortenSpeed = 10f;
 
+    // Web Swinging Predetiction
+    public RaycastHit webPredictionHit;
+    public float predictionSphereCastRadius;
+    public Transform predictionPoint;
+
+
     private void Awake()
     {
         Lr = GetComponent<LineRenderer>();
@@ -41,6 +47,9 @@ public class WebShooter : MonoBehaviour
             StopWeb();
         }
 
+        CheckForSwingPoints();
+
+
         if (isSwinging)
         {
             SpiderManAirControl();
@@ -50,6 +59,43 @@ public class WebShooter : MonoBehaviour
     void LateUpdate()
     {
         DrawWeb();
+    }
+
+    private void CheckForSwingPoints()
+    {
+        RaycastHit sphereCastHit;
+        Physics.SphereCast(mainCamera.position, predictionSphereCastRadius, mainCamera.forward , out sphereCastHit, maxDistance, whatIsWebable);
+
+        RaycastHit raycastHit;
+        Physics.Raycast(mainCamera.position, mainCamera.forward, out raycastHit, maxDistance, whatIsWebable);
+
+        Vector3 realHitPoint;
+        // Option 1 - Direct Hit
+        if (raycastHit.point != Vector3.zero)
+            realHitPoint = raycastHit.point;
+
+        // Option 2 - Indirect (predicted) Hit
+        else if (sphereCastHit.point != Vector3.zero)
+            realHitPoint = sphereCastHit.point;
+
+        // Option 3 - Miss
+        else
+            realHitPoint = Vector3.zero;
+
+        // realHitPoint found
+        if (realHitPoint != Vector3.zero)
+        {
+            predictionPoint.gameObject.SetActive(true);
+            predictionPoint.position = realHitPoint;
+        }
+        // realHitPoint not found
+        else
+        {
+            predictionPoint.gameObject.SetActive(false);
+        }
+
+        webPredictionHit = raycastHit.point == Vector3.zero ? sphereCastHit : raycastHit;
+
     }
 
     void StartWeb()
@@ -93,7 +139,12 @@ public class WebShooter : MonoBehaviour
         currentSwingForce = Mathf.Min(currentSwingForce + Time.deltaTime * webShortenSpeed, maxSwingForce);
 
         // Calculate swing force based on the direction towards the web point
-        Vector3 swingForce = (webPoint - player.position).normalized * currentSwingForce;
+        Vector3 toWebPoint = webPoint - player.position;
+        Vector3 webDirection = toWebPoint.normalized;
+
+        // Ensure that the swing force is always perpendicular to the web direction
+        Vector3 swingDirection = Vector3.Cross(webDirection, Vector3.down).normalized;
+        Vector3 swingForce = Vector3.Cross(swingDirection, webDirection) * currentSwingForce;
 
         // Limit the swing speed
         Vector3 currentVelocity = playerRb.velocity;
